@@ -49,6 +49,11 @@ namespace SDDM {
         m_autologin = on;
     }
 
+    void Backend::setFingerPtintLogin(bool on)
+    {
+        m_fingerprintlogin = on;
+    }
+
     void Backend::setGreeter(bool on) {
         m_greeter = on;
     }
