@@ -41,6 +41,7 @@
 #include <pwd.h>
 #include <unistd.h>
 
+#include <QLocalSocket>
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusReply>
@@ -105,6 +106,11 @@ namespace SDDM {
 
         // connect login signal
         connect(m_socketServer, &SocketServer::login, this, &Display::login);
+
+        connect(m_socketServer, &SocketServer::connected, [this](QLocalSocket* socket){
+            m_socket = socket;
+            fingerprintLogin();
+        });
 
         // connect login result signals
         connect(this, SIGNAL(loginFailed(QLocalSocket*)), m_socketServer, SLOT(loginFailed(QLocalSocket*)));
@@ -177,6 +183,10 @@ namespace SDDM {
     }
 
     bool Display::fingerprintLogin(){
+        if(mainConfig.Fingerprintlogin.User.get().isEmpty()){
+            return false;
+        }
+
         Session::Type sessionType = Session::X11Session;
 
         QString fingerprintSession = mainConfig.Fingerprintlogin.Session.get();
@@ -248,12 +258,6 @@ namespace SDDM {
 
         // start greeter
         m_greeter->start();
-
-        // do fingerprint login
-        if(daemonApp->first || !mainConfig.Fingerprintlogin.User.get().isEmpty()){
-            fingerprintLogin();
-        }
-
 
         // reset first flag
         daemonApp->first = false;
